@@ -2,7 +2,7 @@ from flask import Blueprint, jsonify
 getMetaData = Blueprint("getMetaData", __name__)
 
 @getMetaData.route('/', methods=['GET'])
-def showContacts():
+def getMeta():
     endpoints = {
         'view' : {
             'params': [],
