@@ -9,8 +9,8 @@ app = Flask(__name__)
 
 app.register_blueprint(getMetaData, url_prefix="/getMetaData")
 
-# authentication decorator
 @app.route('/addContact', methods=['POST'])
+@authenticator.authenticate
 def addContact():
     # read and validate inputs
     firstName = request.args['FirstName']
@@ -35,8 +35,9 @@ def addContact():
         db_conn.closeConn()
     return jsonify(response)
 
-# authentication decorator
+
 @app.route('/updateContact', methods=['POST'])
+@authenticator.authenticate
 def updateContact():
     email = request.args['Email']
     firstName = request.args['FirstName'] if len(request.args['FirstName']) >=2 else None
@@ -72,8 +73,8 @@ def updateContact():
             else: response = "Could not Update User details"
     return jsonify(response)
 
-# authentication decorator
 @app.route('/deleteContact', methods=['DELETE'])
+@authenticator.authenticate
 def deleteContact():
     email = request.args['email'] if 'email' in request.args else None
     db_conn = Database()
@@ -85,8 +86,8 @@ def deleteContact():
     db_conn.closeConn()
     return jsonify(response)
 
-# authentication decorator
 @app.route('/search', methods=['GET'])
+@authenticator.authenticate
 def searchContact():
     searchText = request.args['query'] if 'query' in request.args else None
     db_conn = Database()
@@ -104,14 +105,13 @@ def searchContact():
     return jsonify(response)
 
 
-# @app.route('/', methods=['GET'])
+
 @app.route('/view', methods=['GET'])
 @authenticator.authenticate
 def showContacts(page=1):
     db_conn = Database()
     cursor = db_conn.getcursor()
     page  = int(request.args['page']) if 'page' in request.args and request.args['page'] else page
-    print(page)
     if page <= 0: page=1
     response = "No Contacts found"
     # sql = "SELECT COUNT(*) AS rows FROM ContactBook"
