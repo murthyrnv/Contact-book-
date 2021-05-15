@@ -13,7 +13,7 @@ def check(encodedCred):
     if cursor.rowcount > 0:
         user = cursor.fetchone()
         if user['password'] == credentials[1]:
-            if request.url_rule in ['/deleteContact','/updateContact'] and user['role'] == 'user':
+            if str(request.url_rule) in ['/deleteContact','/updateContact'] and user['role'] == 'user':
                 return 'Not Authorized to perform this operation'
             else:
                 return 'Authentication Successfull'
@@ -22,7 +22,10 @@ def check(encodedCred):
 def authenticate(f):
     @wraps(f)
     def verify(*args, **kwargs):
-        encodedCredentials = request.headers.get('Authorization').split()[1]
+        authHeader = request.headers.get('Authorization')
+        if authHeader is None:
+            return jsonify('Missing Credentials for Authorization'),401
+        encodedCredentials = authHeader.split()[1]
         authStatus = check(encodedCredentials)
         if authStatus == 'Authentication Successfull':
             return f(*args, **kwargs)

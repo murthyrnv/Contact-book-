@@ -40,9 +40,9 @@ def addContact():
 @authenticator.authenticate
 def updateContact():
     email = request.args['Email']
-    firstName = request.args['FirstName'] if len(request.args['FirstName']) >=2 else None
-    lastName = request.args['LastName'] if len(request.args['LastName']) >=2 else None
-    phone = request.args['Phone'] if len(request.args['Phone']) <=8 in request.args else None
+    firstName = request.args['FirstName'] if 'FirstName' in request.args and len(request.args['FirstName'])>=2  else None
+    lastName = request.args['LastName'] if 'LastName' in request.args and len(request.args['LastName'])>=2 else None
+    phone = request.args['Phone'] if 'Phone' in request.args and len(request.args['Phone'])>=8 else None
     if firstName is None and lastName is None and phone is None:
         response = "No parameter found to update"
     else:
@@ -68,6 +68,7 @@ def updateContact():
                 values += (phone,)
             sql_update += "WHERE email = %s"
             values += (email,)
+            print(sql_update)
             cursor.execute(sql_update,values)
             if cursor.rowcount > 0: response = "Contact Updated Successfully"
             else: response = "Could not Update User details"
@@ -76,13 +77,19 @@ def updateContact():
 @app.route('/deleteContact', methods=['DELETE'])
 @authenticator.authenticate
 def deleteContact():
-    email = request.args['email'] if 'email' in request.args else None
+    email = request.args['Email'] if 'Email' in request.args else None
     db_conn = Database()
     cursor = db_conn.getcursor()
-    response = 'Unable to Delete Contact'
-    sql_delete = "DELETE FROM ContactBook WHERE email = %s"
-    cursor.execute(sql_delete,(email,))
-    if cursor.rowcount > 0: response = "Contact Deleted"
+    sql = "SELECT * FROM ContactBook WHERE email = %s"
+    cursor.execute(sql,(email,))
+    print(email)
+    if cursor.rowcount > 0:
+        response = 'Unable to Delete Contact'
+        sql_delete = "DELETE FROM ContactBook WHERE email = %s"
+        cursor.execute(sql_delete,(email,))
+        if cursor.rowcount > 0: response = "Contact Deleted"
+    else:
+        response = 'No User found with given email id'
     db_conn.closeConn()
     return jsonify(response)
 
