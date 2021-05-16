@@ -68,7 +68,6 @@ def updateContact():
                 values += (phone,)
             sql_update += "WHERE email = %s"
             values += (email,)
-            print(sql_update)
             cursor.execute(sql_update,values)
             if cursor.rowcount > 0: response = "Contact Updated Successfully"
             else: response = "Could not Update User details"
@@ -82,7 +81,6 @@ def deleteContact():
     cursor = db_conn.getcursor()
     sql = "SELECT * FROM ContactBook WHERE email = %s"
     cursor.execute(sql,(email,))
-    print(email)
     if cursor.rowcount > 0:
         response = 'Unable to Delete Contact'
         sql_delete = "DELETE FROM ContactBook WHERE email = %s"
@@ -97,18 +95,21 @@ def deleteContact():
 @authenticator.authenticate
 def searchContact():
     searchText = request.args['query'] if 'query' in request.args else None
-    db_conn = Database()
-    cursor = db_conn.getcursor()
-    response = 'User not found'
-    value = "'%" + str(searchText) +"%'"
-    sql_search = "SELECT * FROM contactbook WHERE "
-    if '@' in searchText:
-        sql_search +=  "email LIKE " + value
+    if searchText is not None and (searchText.count('@') > 1 or len(searchText) < 2):
+        response = 'Invalid Parameters'
     else:
-        sql_search += "FirstName LIKE " + value + "OR LastName LIKE " + value
-    cursor.execute(sql_search)
-    if cursor.rowcount > 0: response = cursor.fetchall()
-    db_conn.closeConn()
+        db_conn = Database()
+        cursor = db_conn.getcursor()
+        response = 'User not found'
+        value = "'%" + str(searchText) +"%'"
+        sql_search = "SELECT * FROM contactbook WHERE "
+        if '@' in searchText:
+            sql_search +=  "email LIKE " + value
+        else:
+            sql_search += "FirstName LIKE " + value + "OR LastName LIKE " + value
+        cursor.execute(sql_search)
+        if cursor.rowcount > 0: response = cursor.fetchall()
+        db_conn.closeConn()
     return jsonify(response)
 
 
@@ -126,7 +127,7 @@ def showContacts(page=1):
     # numOfRows = cursor.fetchone()['rows']
     # index = 0
     # if numOfRows < ((page-1) * config.LIMT_ROWS): index = 
-    sql = "SELECT * FROM ContactBook ORDER BY email LIMIT %s,%s"
+    sql = "SELECT Concat(Concat(FirstName, ' '),LastName) as Name, Email,Phone FROM ContactBook ORDER BY email LIMIT %s,%s"
     cursor.execute(sql,((page-1) * config.LIMT_ROWS,config.LIMT_ROWS))
     if cursor.rowcount > 0: response = cursor.fetchall()
     db_conn.closeConn()
