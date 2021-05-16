@@ -138,6 +138,7 @@ def showContacts(page=1):
 def validateParams():
     params = request.values
     target = str(request.url_rule)
+    print(target)
     if target =='/view':
         if len(params) > 1:
             return jsonify("Missing or Invalid Parameters,please refer to the '\metadata' API")
@@ -157,8 +158,6 @@ def validateParams():
     elif target =='/search':
         if 'query' not in params or len(params) > 1:
             return jsonify("Missing or Invalid Parameters,please refer to the '\metadata' API")
-    else:
-       return jsonify("Invalid Endpoint,please refer to the '\metadata' API")
             
 
 
